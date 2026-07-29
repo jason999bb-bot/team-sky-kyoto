@@ -79,8 +79,6 @@
   td{padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:middle;white-space:nowrap;}
   tr:hover td{background:#fafafa;}
   .num{font-family:var(--font-mono);color:var(--accent);font-weight:bold;}
-  .name-cell{cursor:pointer;user-select:none;}
-  .name-cell:hover{text-decoration:underline dotted;}
   .status-tag{font-size:11px;font-weight:bold;margin-left:6px;padding:1px 6px;border-radius:3px;}
   .status-tag.retire{background:#fde8c9;color:#8a5a00;}
   .status-tag.dns{background:#fbdde0;color:var(--accent-dark);}
@@ -90,7 +88,12 @@
   .goal-btn.done{background:var(--ok);color:#fff;border-color:var(--ok);}
   .small-input{width:70px;}
   .gender-select,.category-select{width:90px;}
-  .run-cell{display:flex;align-items:center;gap:6px;}
+  .dnf-select{width:80px;}
+  .name-input{width:150px;}
+  th.run-th,td.run-td{text-align:center;}
+  .run-cell{display:flex;flex-direction:column;align-items:center;gap:4px;}
+  .run-cell .time-input{width:88px;text-align:center;}
+  .run-cell .goal-btn{width:88px;}
 
   .empty{color:var(--muted);font-size:13px;padding:20px 0;text-align:center;}
   .rank-medal{font-family:var(--font-mono);font-weight:bold;}
@@ -117,7 +120,7 @@
     }
     .sidebar h3{margin:0 0 6px 2px;}
     #tournamentList{display:flex;flex-direction:row;gap:6px;overflow-x:auto;padding-bottom:4px;}
-    .tourn-item{flex:0 0 auto;white-space:nowrap;border-left:none;border-bottom:3px solid transparent;}
+    .tourn-item{width:auto;flex:0 0 auto;white-space:nowrap;border-left:none;border-bottom:3px solid transparent;}
     .tourn-item.active{border-left:none;border-bottom-color:var(--accent);}
     .add-tourn-btn{width:auto;flex:0 0 auto;margin-top:0;padding:10px 14px;}
     #authBox{margin-top:10px;padding-top:10px;}
@@ -136,12 +139,16 @@
 
     .row .field{min-width:120px;}
 
-    table{font-size:12px;}
-    th,td{padding:6px 4px;}
-    .time-input{width:82px;font-size:12px;}
-    .goal-btn{padding:5px 8px;font-size:11px;}
-    .small-input{width:56px;}
+    table{font-size:11px;}
+    th,td{padding:5px 3px;}
+    .time-input{width:70px;font-size:11px;padding:5px 4px;}
+    .goal-btn{padding:4px 6px;font-size:10px;}
+    .small-input{width:40px;}
     .gender-select,.category-select{width:76px;}
+    .run-cell .time-input{width:58px;font-size:10.5px;padding:4px;}
+    .run-cell .goal-btn{width:58px;padding:4px 2px;font-size:10px;}
+    .dnf-select{width:64px;}
+    .name-input{width:96px;}
   }
 
   @media (max-width: 480px){
@@ -888,13 +895,11 @@ async function clearAllParticipants(){
   saveTournament(t);
 }
 
-function toggleStatus(id){
+function setParticipantStatus(id, value){
   const t = getCurrent();
   const p = t.participants.find(p=>p.id===id);
   if(!p) return;
-  if(p.status === "normal") p.status = "retire";
-  else if(p.status === "retire") p.status = "dns";
-  else p.status = "normal";
+  p.status = value === "dns" ? "dns" : value === "dnf" ? "retire" : "normal";
   renderAll();
   saveTournament(t);
 }
@@ -941,8 +946,6 @@ function updateRunTime(id, runIndex, value){
 /* ===================== レンダリング: 出走リスト ===================== */
 function participantRow(p, timeCount){
   const t = getCurrent();
-  const statusTag = p.status === "retire" ? '<span class="status-tag retire">リタイア</span>'
-                    : p.status === "dns" ? '<span class="status-tag dns">DNS</span>' : '';
   resizeTimes(p, timeCount);
 
   let runCells = "";
@@ -953,7 +956,7 @@ function participantRow(p, timeCount){
     // 確定済(finished)の状態の時はボタンを無効化(disabled)
     const goalDisabled = (!run || !run.started || run.ended || p.status !== "normal" || finished);
     runCells += `
-      <td>
+      <td class="run-td">
         <div class="run-cell">
           <button class="goal-btn ${finished?'done':''}" ${goalDisabled?'disabled':''} onclick="goalRun(${p.id},${i})">
             ${finished ? '確定済' : 'Goal'}
@@ -964,19 +967,28 @@ function participantRow(p, timeCount){
       </td>`;
   }
 
+  const statusVal = p.status === "dns" ? "dns" : p.status === "retire" ? "dnf" : "";
+
   return `
   <tr>
-    <td><input class="time-input small-input" style="width:55px" value="${p.number}"
+    <td><input class="time-input small-input" style="width:44px" value="${p.number}"
       onchange="updateField(${p.id},'number',this.value)"></td>
-    <td class="name-cell" onclick="toggleStatus(${p.id})" title="クリックでリタイア/DNS切替">
-      <input class="time-input" style="width:120px;border:none;background:transparent;padding:0;font-family:inherit;color:var(--text);"
-        value="${p.name}" onclick="event.stopPropagation()" onchange="updateField(${p.id},'name',this.value)">${statusTag}
+    <td>
+      <input class="time-input name-input" style="border:none;background:transparent;padding:0;font-family:inherit;color:var(--text);"
+        value="${p.name}" onchange="updateField(${p.id},'name',this.value)">
     </td>
+    ${runCells}
+    <td style="font-family:var(--font-mono);font-weight:bold;">${secToHMS(participantTotal(p, timeCount))}</td>
     <td><input type="number" class="time-input small-input" value="${p.age ?? ''}"
       onchange="updateField(${p.id},'age',this.value)"></td>
     <td>${t.defaultCategory || 'ノーマル'}</td>
-    ${runCells}
-    <td style="font-family:var(--font-mono);font-weight:bold;">${secToHMS(participantTotal(p, timeCount))}</td>
+    <td>
+      <select class="time-input dnf-select" onchange="setParticipantStatus(${p.id}, this.value)">
+        <option value="" ${statusVal===''?'selected':''}></option>
+        <option value="dns" ${statusVal==='dns'?'selected':''}>DNS</option>
+        <option value="dnf" ${statusVal==='dnf'?'selected':''}>DNF</option>
+      </select>
+    </td>
     <td><button class="btn secondary" style="padding:4px 10px;font-size:12px;height:auto;" onclick="removeParticipant(${p.id})">削除</button></td>
   </tr>`;
 }
@@ -993,12 +1005,12 @@ function renderGenderTable(gender, wrapId){
   }
   let runHeaders = "";
   for(let i=0;i<timeCount;i++){
-    runHeaders += `<th>${i+1}本目</th>`;
+    runHeaders += `<th class="run-th">${i+1}本目</th>`;
   }
   wrap.innerHTML = `
   <table>
     <thead><tr>
-      <th>番号</th><th>名前</th><th>年齢</th><th>カテゴリー</th>${runHeaders}<th>合計</th><th></th>
+      <th>番号</th><th>名前</th>${runHeaders}<th>合計</th><th>年齢</th><th>カテゴリー</th><th>DNS/DNF</th><th></th>
     </tr></thead>
     <tbody>${list.map(p=>participantRow(p, timeCount)).join("")}</tbody>
   </table>`;
