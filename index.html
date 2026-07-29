@@ -93,7 +93,9 @@
   th.run-th,td.run-td{text-align:center;}
   .run-cell{display:flex;flex-direction:column;align-items:center;gap:4px;}
   .run-cell .time-input{width:88px;text-align:center;}
-  .run-cell .goal-btn{width:88px;}
+  .run-cell .goal-btn{width:88px;height:56px;}
+  td.run-td + td.run-td{padding-left:16px;}
+  th.run-th + th.run-th{padding-left:16px;}
 
   .empty{color:var(--muted);font-size:13px;padding:20px 0;text-align:center;}
   .rank-medal{font-family:var(--font-mono);font-weight:bold;}
@@ -137,18 +139,24 @@
     .panel{padding:12px;}
     .panel h2{font-size:13px;}
 
-    .row .field{min-width:120px;}
+    .row{gap:6px;}
+    .row .field{min-width:100px;margin-bottom:8px;}
+    .field label{font-size:11px;margin-bottom:2px;}
+    .field input,.field select{height:34px;font-size:13px;padding:0 8px;}
+    button.btn{height:34px;font-size:13px;padding:0 12px;}
 
     table{font-size:11px;}
     th,td{padding:5px 3px;}
     .time-input{width:70px;font-size:11px;padding:5px 4px;}
     .goal-btn{padding:4px 6px;font-size:10px;}
-    .small-input{width:40px;}
+    .small-input{width:34px;}
     .gender-select,.category-select{width:76px;}
-    .run-cell .time-input{width:58px;font-size:10.5px;padding:4px;}
-    .run-cell .goal-btn{width:58px;padding:4px 2px;font-size:10px;}
-    .dnf-select{width:64px;}
-    .name-input{width:96px;}
+    .run-cell .time-input{width:72px;font-size:11px;padding:4px;}
+    .run-cell .goal-btn{width:72px;height:48px;padding:4px 2px;font-size:10px;}
+    td.run-td + td.run-td{padding-left:10px;}
+    th.run-th + th.run-th{padding-left:10px;}
+    .dnf-select{width:60px;}
+    .name-input{width:80px;}
   }
 
   @media (max-width: 480px){
@@ -971,7 +979,7 @@ function participantRow(p, timeCount){
 
   return `
   <tr>
-    <td><input class="time-input small-input" style="width:44px" value="${p.number}"
+    <td><input class="time-input small-input" style="width:36px" maxlength="3" value="${p.number}"
       onchange="updateField(${p.id},'number',this.value)"></td>
     <td>
       <input class="time-input name-input" style="border:none;background:transparent;padding:0;font-family:inherit;color:var(--text);"
