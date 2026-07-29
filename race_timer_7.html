@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Team Sky Kyoto 大会記録システム</title>
+<style>
+  :root{
+    --bg:#ffffff;
+    --panel:#ffffff;
+    --panel-2:#f4f2f2;
+    --line:#e2dcdc;
+    --text:#1b1b1b;
+    --muted:#867f7f;
+    --accent:#e0202f;
+    --accent-dark:#a4131f;
+    --ok:#1f9d55;
+    --font-display:"Archivo Black","Hiragino Sans","Noto Sans JP",sans-serif;
+    --font-body:"Hiragino Sans","Noto Sans JP","Segoe UI",sans-serif;
+    --font-mono:"JetBrains Mono","SFMono-Regular",Consolas,monospace;
+    --ctrl-h:40px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body);}
+  .app{display:flex;min-height:100vh;align-items:stretch;}
+
+  .sidebar{width:240px;flex-shrink:0;background:var(--panel-2);border-right:1px solid var(--line);padding:16px 12px;}
+  .sidebar h3{font-family:var(--font-display);font-size:12px;letter-spacing:0.5px;color:var(--muted);text-transform:uppercase;margin:0 0 10px 4px;}
+  .tourn-item{display:flex;align-items:center;justify-content:space-between;gap:6px;width:100%;text-align:left;background:none;border:none;border-left:3px solid transparent;padding:10px 8px;margin-bottom:2px;border-radius:4px;cursor:pointer;font-family:var(--font-body);font-size:13.5px;color:var(--text);}
+  .tourn-item:hover{background:#eee;}
+  .tourn-item.active{background:#fff;border-left-color:var(--accent);color:var(--accent);font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,0.08);}
+  .tourn-item .del{color:var(--muted);font-size:11px;padding:2px 6px;border-radius:3px;}
+  .tourn-item .del:hover{background:var(--accent-dark);color:#fff;}
+  .add-tourn-btn{width:100%;margin-top:10px;background:var(--accent);color:#fff;border:none;border-radius:5px;padding:10px;font-weight:700;cursor:pointer;font-size:13px;}
+
+  .content{flex:1;min-width:0;padding-bottom:60px;}
+  header{background:#fff;border-bottom:3px solid var(--accent);padding:18px 24px 14px;position:sticky;top:0;z-index:10;}
+  .header-top{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+  h1{font-family:var(--font-display);font-size:22px;letter-spacing:0.5px;margin:0;color:var(--text);}
+  h1 .tag{color:var(--accent);}
+  .status-line{font-family:var(--font-mono);font-size:13px;color:var(--muted);margin-top:6px;display:flex;flex-direction:column;gap:4px;}
+  .status-row{display:flex;gap:16px;flex-wrap:wrap;align-items:center;}
+  .status-row .run-label{font-family:var(--font-body);font-weight:700;color:var(--text);min-width:50px;}
+  .status-line b{color:var(--text);}
+  .badge{display:inline-block;padding:2px 8px;border-radius:3px;font-size:11px;font-family:var(--font-mono);font-weight:bold;letter-spacing:0.5px;}
+  .badge.wait{background:#e8e8e8;color:#777;}
+  .badge.run{background:var(--ok);color:#fff;}
+  .badge.end{background:var(--accent-dark);color:#fff;}
+  .remaining.warn{color:var(--accent-dark);font-weight:bold;}
+
+  nav{display:flex;gap:2px;background:#fff;border-bottom:1px solid var(--line);overflow-x:auto;padding:0 24px;}
+  nav button{background:none;border:none;color:var(--muted);padding:12px 16px;font-family:var(--font-body);font-weight:600;font-size:14px;cursor:pointer;border-bottom:3px solid transparent;}
+  nav button.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+  main{max-width:1120px;margin:0 auto;padding:18px 24px;}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:16px;}
+  .panel h2{font-family:var(--font-display);font-size:15px;margin:0 0 12px;color:var(--accent);letter-spacing:0.5px;text-transform:uppercase;}
+  .field{margin-bottom:12px;}
+  .field label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px;}
+  .field input,.field select{width:100%;height:var(--ctrl-h);padding:0 10px;background:var(--panel-2);border:1px solid var(--line);border-radius:5px;color:var(--text);font-family:var(--font-body);font-size:14px;}
+  .row{display:flex;gap:10px;flex-wrap:wrap;}
+  .row .field{flex:1;min-width:150px;}
+  .digit-field{max-width:70px;flex:0 0 auto !important;min-width:0 !important;}
+  .digit-input{text-align:center;}
+
+  button.btn{height:var(--ctrl-h);background:var(--accent);color:#fff;border:none;border-radius:5px;padding:0 16px;font-weight:700;font-size:14px;cursor:pointer;font-family:var(--font-body);}
+  button.btn.secondary{background:var(--panel-2);color:var(--text);border:1px solid var(--line);}
+  button.btn.danger{background:var(--accent-dark);color:#fff;}
+  button.btn.small{height:34px;padding:0 10px;font-size:12px;}
+  button.btn:disabled{opacity:0.4;cursor:not-allowed;}
+  button.btn:active{transform:translateY(1px);}
+
+  hr.sep{border:none;border-top:1px solid var(--line);margin:16px 0;}
+
+  .table-scroll{overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;font-size:14px;}
+  th{text-align:left;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;padding:8px 6px;border-bottom:2px solid var(--line);white-space:nowrap;}
+  td{padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:middle;white-space:nowrap;}
+  tr:hover td{background:#fafafa;}
+  .num{font-family:var(--font-mono);color:var(--accent);font-weight:bold;}
+  .name-cell{cursor:pointer;user-select:none;}
+  .name-cell:hover{text-decoration:underline dotted;}
+  .status-tag{font-size:11px;font-weight:bold;margin-left:6px;padding:1px 6px;border-radius:3px;}
+  .status-tag.retire{background:#fde8c9;color:#8a5a00;}
+  .status-tag.dns{background:#fbdde0;color:var(--accent-dark);}
+  .time-input{width:100px;font-family:var(--font-mono);background:var(--panel-2);border:1px solid var(--line);border-radius:4px;color:var(--text);padding:6px 8px;font-size:13px;}
+  .goal-btn{background:#fff;color:var(--accent);border:1px solid var(--accent);border-radius:4px;padding:6px 12px;font-weight:700;cursor:pointer;font-size:12px;}
+  .goal-btn:disabled{opacity:0.35;cursor:not-allowed;border-color:var(--line);color:var(--muted);}
+  .goal-btn.done{background:var(--ok);color:#fff;border-color:var(--ok);}
+  .small-input{width:70px;}
+  .gender-select,.category-select{width:90px;}
+  .run-cell{display:flex;align-items:center;gap:6px;}
+
+  .empty{color:var(--muted);font-size:13px;padding:20px 0;text-align:center;}
+  .rank-medal{font-family:var(--font-mono);font-weight:bold;}
+  .rank-1{color:#c9860a;}
+  .rank-2{color:#8a8a8a;}
+  .rank-3{color:#a4611f;}
+
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+  .section-sub{font-family:var(--font-display);font-size:13px;color:var(--muted);margin:18px 0 8px;letter-spacing:0.5px;padding-bottom:6px;border-bottom:2px solid var(--line);}
+  footer.note{max-width:1120px;margin:0 auto;padding:0 24px;color:var(--muted);font-size:12px;}
+
+  .run-block{border:1px solid var(--line);border-radius:6px;padding:12px;margin-bottom:10px;background:var(--panel-2);}
+  .run-block-title{font-weight:700;font-size:13px;margin-bottom:8px;}
+
+  .radio-group{display:flex;gap:18px;}
+  .radio-option{display:flex;align-items:center;gap:6px;font-size:14px;}
+  .radio-option input{width:auto;height:auto;}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="sidebar">
+    <h3>大会一覧</h3>
+    <div id="tournamentList"></div>
+    <button class="add-tourn-btn" onclick="addTournament()">＋ 新しい大会を追加</button>
+    <div id="authBox" style="margin-top:16px;padding-top:16px;border-top:1px solid var(--line);"></div>
+  </div>
+
+  <div class="content">
+    <header>
+      <div class="header-top">
+        <h1 id="tournamentTitle"><span class="tag">[Team Sky Kyoto]</span> 大会記録システム</h1>
+        <span id="syncStatus" class="badge wait">クラウド同期: 接続中…</span>
+      </div>
+      <div class="status-line" id="statusLineWrap"></div>
+    </header>
+
+    <nav>
+      <button class="tab-btn active" data-tab="settings">大会設定</button>
+      <button class="tab-btn" data-tab="entries">出走リスト</button>
+      <button class="tab-btn" data-tab="ranking">リザルト</button>
+    </nav>
+
+    <main>
+      <!-- ============ 設定タブ ============ -->
+      <section id="tab-settings">
+        <div class="panel">
+          <h2>大会情報</h2>
+
+          <div class="field">
+            <label>大会名</label>
+            <input type="text" id="tournamentNameInput" placeholder="例: 第10回 〇〇市民マラソン大会">
+          </div>
+          <button class="btn" onclick="setTournamentName()">名称を設定</button>
+
+          <hr class="sep">
+
+          <div class="row" style="align-items:flex-start;">
+            <div class="field digit-field">
+              <label>本数</label>
+              <input type="number" id="timeCountInput" class="digit-input" min="1" max="99" maxlength="2" value="1">
+            </div>
+            <div class="field" style="flex:0 0 auto;">
+              <label style="visibility:hidden;">設定</label>
+              <button class="btn" onclick="setTimeCount()">本数設定</button>
+            </div>
+          </div>
+
+          <div id="runSettingsWrap"></div>
+
+          <hr class="sep">
+
+          <div>
+            <label style="display:block;font-size:12px;color:var(--muted);margin-bottom:8px;">カテゴリー</label>
+            <div class="radio-group">
+              <label class="radio-option"><input type="radio" name="defaultCategory" value="ノーマル" onchange="setDefaultCategory('ノーマル')"> ノーマル</label>
+              <label class="radio-option"><input type="radio" name="defaultCategory" value="エキスパート" onchange="setDefaultCategory('エキスパート')"> エキスパート</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>データ出力・入出力</h2>
+          <div class="toolbar">
+            <button class="btn" onclick="exportCSV()">結果をCSV出力</button>
+            <button class="btn secondary" onclick="exportJSON()">全大会データをJSON保存</button>
+            <label class="btn secondary" style="cursor:pointer;display:inline-flex;align-items:center;">
+              JSON読み込み
+              <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importJSON(event)">
+            </label>
+          </div>
+          <p style="color:var(--muted);font-size:12px;">
+            ※このアプリはブラウザ上のメモリにのみデータを保持します（ページを再読み込みすると消えます）。
+            こまめに「JSON保存」でファイルに書き出し、必要な時に「JSON読み込み」で復元してください（全大会分がまとめて保存されます）。
+          </p>
+        </div>
+      </section>
+
+      <!-- ============ 出走リスト ============ -->
+      <section id="tab-entries" style="display:none;">
+        <div class="panel">
+          <h2>選手登録</h2>
+          <div class="row">
+            <div class="field"><label>名前</label><input type="text" id="newName"></div>
+            <div class="field">
+              <label>性別</label>
+              <select id="newGender"><option value="M">男</option><option value="F">女</option></select>
+            </div>
+            <div class="field"><label>年齢</label><input type="number" id="newAge" min="0"></div>
+            <div class="field">
+              <label>カテゴリー</label>
+              <input type="text" id="newCategoryDisplay" value="ノーマル" disabled style="opacity:0.7;">
+            </div>
+          </div>
+          <button class="btn" onclick="addParticipant()">選手を追加（番号は自動採番）</button>
+        </div>
+
+        <div class="panel">
+          <h2>出走リスト</h2>
+          <div class="toolbar">
+            <button class="btn secondary" onclick="resetAllTimes()">リセット</button>
+            <button class="btn danger" onclick="clearAllParticipants()">クリア</button>
+          </div>
+          <div class="section-sub">男子</div>
+          <div class="table-scroll" id="menTableWrap"></div>
+          <div class="section-sub">女子</div>
+          <div class="table-scroll" id="womenTableWrap"></div>
+        </div>
+      </section>
+
+      <!-- ============ リザルトタブ ============ -->
+      <section id="tab-ranking" style="display:none;">
+        <div class="panel">
+          <h2>総合リザルト</h2>
+          <div id="overallRankWrap"></div>
+        </div>
+        <div class="panel">
+          <h2>男女別リザルト</h2>
+          <div class="section-sub">男子</div>
+          <div id="menRankWrap"></div>
+          <div class="section-sub">女子</div>
+          <div id="womenRankWrap"></div>
+        </div>
+        <div class="panel">
+          <h2>年代別×男女リザルト</h2>
+          <div id="ageRankWrap"></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="note">Team Sky Kyoto 大会記録システム — 全ての項目はいつでも手動で編集できます。</footer>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script>
+/* ===================== Firebase 初期化 ===================== */
+const firebaseConfig = {
+  apiKey: "AIzaSyCEs-onNKeKV6Jhs1QCWx0oJ0JJ7JBeHWo",
+  authDomain: "team-sky-kyoto.firebaseapp.com",
+  projectId: "team-sky-kyoto",
+  storageBucket: "team-sky-kyoto.firebasestorage.app",
+  messagingSenderId: "440379820167",
+  appId: "1:440379820167:web:a641d819552355b8e69022"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const auth = firebase.auth();
+const TOURNAMENTS_COLLECTION = "tournaments";
+
+/* ===================== 状態管理 ===================== */
+function newRun(){
+  return { startTime:null, timeLimitMinutes:null, started:false, ended:false };
+}
+
+function newTournament(name){
+  return {
+    id: "t" + Date.now() + Math.floor(Math.random()*1000),
+    name: name || "新しい大会",
+    defaultCategory: "ノーマル",
+    timeCount: 1,
+    runs: [ newRun() ],
+    nextId: 1,
+    nextNumber: 1,
+    participants: []
+  };
+}
+
+let tournaments = [ newTournament("新しい大会") ];
+let activeTournamentId = tournaments[0].id;
+let currentTab = "settings";
+let tickHandle = null;
+
+function getCurrent(){
+  return tournaments.find(t=>t.id===activeTournamentId) || tournaments[0];
+}
+
+/* ===================== Firestore 同期 ===================== */
+function serializeTournament(t){
+  return {
+    name: t.name,
+    defaultCategory: t.defaultCategory,
+    timeCount: t.timeCount,
+    nextId: t.nextId,
+    nextNumber: t.nextNumber,
+    runs: (t.runs||[]).map(r=>({
+      startTime: r.startTime ? r.startTime.toISOString() : null,
+      timeLimitMinutes: r.timeLimitMinutes,
+      started: !!r.started,
+      ended: !!r.ended
+    })),
+    participants: t.participants || [],
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+}
+
+function deserializeTournament(id, data){
+  const obj = {
+    id: id,
+    name: data.name || "無題の大会",
+    defaultCategory: data.defaultCategory || "ノーマル",
+    timeCount: data.timeCount || 1,
+    nextId: data.nextId || 1,
+    nextNumber: data.nextNumber || 1,
+    runs: (data.runs||[]).map(r=>({
+      startTime: r.startTime ? new Date(r.startTime) : null,
+      timeLimitMinutes: r.timeLimitMinutes || null,
+      started: !!r.started,
+      ended: !!r.ended
+    })),
+    participants: data.participants || []
+  };
+  resizeRuns(obj);
+  resizeAllTimes(obj);
+  return obj;
+}
+
+function saveTournament(t){
+  if(!t) return;
+  db.collection(TOURNAMENTS_COLLECTION).doc(t.id).set(serializeTournament(t))
+    .catch(err=>{
+      console.error("Firestore保存エラー:", err);
+      if(err.code === 'permission-denied'){
+        alert("保存には権限がありません。左メニューからスタッフとしてログインしてください。");
+      }
+    });
+}
+
+function deleteTournamentDoc(id){
+  db.collection(TOURNAMENTS_COLLECTION).doc(id).delete()
+    .catch(err=>{
+      console.error("Firestore削除エラー:", err);
+      if(err.code === 'permission-denied'){
+        alert("削除には権限がありません。左メニューからスタッフとしてログインしてください。");
+      }
+    });
+}
+
+let firestoreReady = false;
+
+function initFirebaseSync(){
+  db.collection(TOURNAMENTS_COLLECTION).onSnapshot(snapshot=>{
+    if(snapshot.empty){
+      if(!firestoreReady){
+        // 初回のみ：ローカルの初期データをクラウドへアップロード
+        tournaments.forEach(t=>saveTournament(t));
+        firestoreReady = true;
+      }
+      setSyncStatus(true);
+      return;
+    }
+    firestoreReady = true;
+    const remoteList = [];
+    snapshot.forEach(docSnap=>{
+      remoteList.push(deserializeTournament(docSnap.id, docSnap.data()));
+    });
+    tournaments = remoteList;
+    if(!tournaments.find(t=>t.id===activeTournamentId)){
+      activeTournamentId = tournaments[0] ? tournaments[0].id : null;
+    }
+    syncSettingsInputs();
+    renderSidebar();
+    renderHeader();
+    renderAll();
+    ensureTicking();
+    setSyncStatus(true);
+  }, err=>{
+    console.error("Firestore同期エラー:", err);
+    setSyncStatus(false);
+  });
+}
+
+function setSyncStatus(ok){
+  const el = document.getElementById('syncStatus');
+  if(!el) return;
+  if(ok){
+    el.textContent = "クラウド同期: 接続中";
+    el.className = "badge run";
+  } else {
+    el.textContent = "クラウド同期: エラー（ローカルのみ）";
+    el.className = "badge end";
+  }
+}
+
+/* ===================== スタッフ認証 ===================== */
+function renderAuthBox(user){
+  const wrap = document.getElementById('authBox');
+  if(!wrap) return;
+  if(user){
+    wrap.innerHTML = `
+      <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">スタッフとしてログイン中:</div>
+      <div style="font-size:12.5px;font-weight:700;margin-bottom:8px;word-break:break-all;">${user.email}</div>
+      <button class="btn secondary" style="width:100%;" onclick="doSignOut()">ログアウト</button>
+    `;
+  } else {
+    wrap.innerHTML = `
+      <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">スタッフログイン（記録の編集に必要）</div>
+      <input type="email" id="loginEmail" placeholder="メールアドレス"
+        style="width:100%;margin-bottom:6px;height:34px;padding:0 8px;border:1px solid var(--line);border-radius:4px;background:#fff;">
+      <input type="password" id="loginPassword" placeholder="パスワード"
+        style="width:100%;margin-bottom:8px;height:34px;padding:0 8px;border:1px solid var(--line);border-radius:4px;background:#fff;">
+      <button class="btn" style="width:100%;" onclick="doSignIn()">ログイン</button>
+      <div style="font-size:11px;color:var(--muted);margin-top:6px;">未ログインでも結果の閲覧は可能です</div>
+    `;
+  }
+}
+
+function doSignIn(){
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  if(!email || !password){ alert("メールアドレスとパスワードを入力してください"); return; }
+  auth.signInWithEmailAndPassword(email, password)
+    .catch(err=>{ alert("ログインに失敗しました: " + err.message); });
+}
+
+function doSignOut(){
+  auth.signOut();
+}
+
+auth.onAuthStateChanged(user=>{
+  renderAuthBox(user);
+});
+
+/* ===================== ユーティリティ ===================== */
+function pad(n, len=2){ return String(n).padStart(len,'0'); }
+
+function secToHMS(sec){
+  if(sec == null || isNaN(sec)) return "";
+  sec = Math.max(0, Math.round(sec));
+  const h = Math.floor(sec/3600);
+  const m = Math.floor((sec%3600)/60);
+  const s = sec%60;
+  return pad(h)+":"+pad(m)+":"+pad(s);
+}
+
+function hmsToSec(str){
+  if(!str) return null;
+  const parts = str.trim().split(":").map(x=>parseInt(x,10));
+  if(parts.some(isNaN)) return null;
+  if(parts.length === 3) return parts[0]*3600+parts[1]*60+parts[2];
+  if(parts.length === 2) return parts[0]*60+parts[1];
+  if(parts.length === 1) return parts[0];
+  return null;
+}
+
+function formatDateTime(d){
+  if(!d) return "未設定";
+  const y=d.getFullYear(),mo=pad(d.getMonth()+1),da=pad(d.getDate()),h=pad(d.getHours()),mi=pad(d.getMinutes()),s=pad(d.getSeconds());
+  return `${y}/${mo}/${da} ${h}:${mi}:${s}`;
+}
+
+function toLocalInputValue(d){
+  const y=d.getFullYear(),mo=pad(d.getMonth()+1),da=pad(d.getDate()),h=pad(d.getHours()),mi=pad(d.getMinutes());
+  return `${y}-${mo}-${da}T${h}:${mi}`;
+}
+
+function ageDecade(age){
+  if(age == null || isNaN(age)) return "不明";
+  const d = Math.floor(age/10)*10;
+  return d + "代";
+}
+
+function resizeTimes(p, count){
+  if(!Array.isArray(p.times)) p.times = [];
+  while(p.times.length < count) p.times.push(null);
+  if(p.times.length > count) p.times.length = count;
+}
+
+function resizeAllTimes(t){
+  t.participants.forEach(p=>resizeTimes(p, t.timeCount));
+}
+
+function resizeRuns(t){
+  if(!Array.isArray(t.runs)) t.runs = [];
+  while(t.runs.length < t.timeCount) t.runs.push(newRun());
+  if(t.runs.length > t.timeCount) t.runs.length = t.timeCount;
+}
+
+function participantTotal(p, timeCount){
+  if(!p.times) return null;
+  for(let i=0;i<timeCount;i++){
+    if(p.times[i] == null) return null;
+  }
+  let sum = 0;
+  for(let i=0;i<timeCount;i++) sum += p.times[i];
+  return sum;
+}
+
+/* ===================== サイドバー：大会切替 ===================== */
+function renderSidebar(){
+  const wrap = document.getElementById('tournamentList');
+  wrap.innerHTML = tournaments.map(t=>`
+    <button class="tourn-item ${t.id===activeTournamentId?'active':''}" onclick="switchTournament('${t.id}')">
+      <span>${t.name || "無題の大会"}</span>
+      <span class="del" onclick="deleteTournament(event,'${t.id}')">×</span>
+    </button>
+  `).join("");
+}
+
+function addTournament(){
+  const t = newTournament("新しい大会 " + (tournaments.length+1));
+  tournaments.push(t);
+  activeTournamentId = t.id;
+  syncSettingsInputs();
+  renderSidebar();
+  renderHeader();
+  renderAll();
+  ensureTicking();
+  saveTournament(t);
+}
+
+function switchTournament(id){
+  activeTournamentId = id;
+  syncSettingsInputs();
+  renderSidebar();
+  renderHeader();
+  renderAll();
+}
+
+function deleteTournament(evt, id){
+  evt.stopPropagation();
+  if(tournaments.length === 1){ alert("最後の1件は削除できません"); return; }
+  if(!confirm("この大会のデータを削除します。よろしいですか？")) return;
+  deleteTournamentDoc(id);
+  tournaments = tournaments.filter(t=>t.id!==id);
+  if(activeTournamentId === id){ activeTournamentId = tournaments[0].id; }
+  syncSettingsInputs();
+  renderSidebar();
+  renderHeader();
+  renderAll();
+}
+
+function syncSettingsInputs(){
+  const t = getCurrent();
+  document.getElementById('tournamentNameInput').value = t.name || "";
+  document.getElementById('timeCountInput').value = t.timeCount || 1;
+  document.querySelectorAll('input[name="defaultCategory"]').forEach(r=>{
+    r.checked = (r.value === t.defaultCategory);
+  });
+  const catDisp = document.getElementById('newCategoryDisplay');
+  if(catDisp) catDisp.value = t.defaultCategory || "ノーマル";
+  renderRunSettings();
+}
+
+/* ===================== 大会設定：基本情報 ===================== */
+function setTournamentName(){
+  const v = document.getElementById('tournamentNameInput').value.trim();
+  if(!v){ alert("大会名を入力してください"); return; }
+  getCurrent().name = v;
+  renderSidebar();
+  renderHeader();
+  saveTournament(getCurrent());
+}
+
+function setDefaultCategory(v){
+  getCurrent().defaultCategory = v;
+  const catDisp = document.getElementById('newCategoryDisplay');
+  if(catDisp) catDisp.value = v;
+  saveTournament(getCurrent());
+  renderAll();
+}
+
+function setTimeCount(){
+  let v = parseInt(document.getElementById('timeCountInput').value, 10);
+  if(!v || v < 1) v = 1;
+  if(v > 99) v = 99;
+  document.getElementById('timeCountInput').value = v;
+  const t = getCurrent();
+  t.timeCount = v;
+  resizeRuns(t);
+  resizeAllTimes(t);
+  renderRunSettings();
+  renderHeader();
+  renderAll();
+  ensureTicking();
+  saveTournament(t);
+}
+
+/* ===================== 本ごとの開始時間・制限時間 ===================== */
+function renderRunSettings(){
+  const t = getCurrent();
+  resizeRuns(t);
+  const wrap = document.getElementById('runSettingsWrap');
+  const multi = t.timeCount > 1;
+
+  wrap.innerHTML = t.runs.map((run, i)=>{
+    const label = multi ? `<div class="run-block-title">${i+1}本目</div>` : "";
+    return `
+    <div class="${multi ? 'run-block' : ''}">
+      ${label}
+      <div class="row">
+        <div class="field">
+          <label>開始日時（予定）</label>
+          <input type="datetime-local" id="startTimeInput_${i}" value="${run.startTime ? toLocalInputValue(run.startTime) : ''}">
+        </div>
+        <div class="field">
+          <label>制限時間（分）</label>
+          <input type="number" id="timeLimitInput_${i}" min="1" value="${run.timeLimitMinutes || ''}">
+        </div>
+      </div>
+      <div class="toolbar">
+        <button class="btn small" onclick="setSchedule(${i})">設定を保存</button>
+        <button class="btn secondary small" onclick="startNow(${i})">今すぐスタート！</button>
+        <button class="btn danger small" onclick="endContestManually(${i})">終了する</button>
+        <button class="btn secondary small" onclick="resetContestTiming(${i})">リセット</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function setSchedule(i){
+  const t = getCurrent();
+  const run = t.runs[i];
+  const startVal = document.getElementById('startTimeInput_'+i).value;
+  const limitVal = document.getElementById('timeLimitInput_'+i).value;
+  if(startVal){
+    run.startTime = new Date(startVal);
+    run.started = new Date() >= run.startTime;
+  }
+  if(limitVal){
+    run.timeLimitMinutes = parseFloat(limitVal);
+  }
+  run.ended = false;
+  renderHeader();
+  ensureTicking();
+  saveTournament(t);
+}
+
+function startNow(i){
+  const t = getCurrent();
+  const run = t.runs[i];
+  run.startTime = new Date();
+  run.started = true;
+  run.ended = false;
+  renderRunSettings();
+  renderHeader();
+  renderAll();
+  ensureTicking();
+  saveTournament(t);
+}
+
+function endContestManually(i){
+  const t = getCurrent();
+  const run = t.runs[i];
+  if(!run.started){ alert("まだ開始されていません"); return; }
+  run.ended = true;
+  renderHeader();
+  renderAll();
+  saveTournament(t);
+}
+
+function resetContestTiming(i){
+  if(!confirm("開始時刻・終了状態をリセットします。よろしいですか？")) return;
+  const t = getCurrent();
+  const run = t.runs[i];
+  run.startTime = null;
+  run.started = false;
+  run.ended = false;
+  renderRunSettings();
+  renderHeader();
+  renderAll();
+  saveTournament(t);
+}
+
+function ensureTicking(){
+  if(tickHandle) return;
+  tickHandle = setInterval(()=>{
+    checkTimeLimits();
+    renderHeader();
+  }, 1000);
+}
+
+function checkTimeLimits(){
+  const t = getCurrent();
+  let changed = false;
+  t.runs.forEach(run=>{
+    if(run.started && !run.ended && run.startTime && run.timeLimitMinutes){
+      const elapsedMin = (Date.now() - run.startTime.getTime())/60000;
+      if(elapsedMin >= run.timeLimitMinutes){
+        run.ended = true;
+        changed = true;
+      }
+    }
+  });
+  if(changed){ renderAll(); saveTournament(t); }
+}
+
+function renderHeader(){
+  const t = getCurrent();
+  document.getElementById('tournamentTitle').innerHTML =
+    '<span class="tag">[Team Sky Kyoto]</span> ' + (t.name || "大会記録システム");
+
+  const multi = t.timeCount > 1;
+  const wrap = document.getElementById('statusLineWrap');
+  wrap.innerHTML = t.runs.map((run, i)=>{
+    let badgeClass = "wait", badgeText = "未開始";
+    if(run.ended){ badgeClass="end"; badgeText="終了"; }
+    else if(run.started){ badgeClass="run"; badgeText="実施中"; }
+
+    let clockText = "経過 --:--:--";
+    let remText = "";
+    let remClass = "remaining";
+    if(run.started && run.startTime){
+      const elapsed = (Date.now() - run.startTime.getTime())/1000;
+      clockText = "経過 " + secToHMS(elapsed);
+      if(run.timeLimitMinutes){
+        const remainSec = run.timeLimitMinutes*60 - elapsed;
+        remText = "残り " + secToHMS(Math.max(0,remainSec));
+        if(remainSec < 300) remClass += " warn";
+      }
+    }
+
+    return `
+    <div class="status-row">
+      ${multi ? `<span class="run-label">${i+1}本目</span>` : ""}
+      <span>開始: <b>${run.startTime ? formatDateTime(run.startTime) : "未設定"}</b></span>
+      <span>制限: <b>${run.timeLimitMinutes ? run.timeLimitMinutes+" 分" : "未設定"}</b></span>
+      <span class="badge ${badgeClass}">${badgeText}</span>
+      <span>${clockText}</span>
+      <span class="${remClass}">${remText}</span>
+    </div>`;
+  }).join("");
+}
+
+/* ===================== 選手登録 ===================== */
+function addParticipant(){
+  const t = getCurrent();
+  const name = document.getElementById('newName').value.trim();
+  const gender = document.getElementById('newGender').value;
+  const age = document.getElementById('newAge').value;
+
+  if(!name){ alert("名前を入力してください"); return; }
+
+  const number = t.nextNumber++;
+  const times = [];
+  for(let i=0;i<t.timeCount;i++) times.push(null);
+
+  t.participants.push({
+    id: t.nextId++,
+    number: number,
+    name: name,
+    gender: gender,
+    age: age === "" ? null : parseInt(age,10),
+    status: "normal",
+    times: times
+  });
+
+  document.getElementById('newName').value = "";
+  document.getElementById('newAge').value = "";
+  renderAll();
+  saveTournament(t);
+}
+
+function removeParticipant(id){
+  if(!confirm("この選手を削除しますか？")) return;
+  const t = getCurrent();
+  t.participants = t.participants.filter(p=>p.id!==id);
+  renderAll();
+  saveTournament(t);
+}
+
+function resetAllTimes(){
+  if(!confirm("全選手の記録タイムを消去し、初期状態に戻します。よろしいですか？\n（選手の登録情報は削除されません）")) return;
+  const t = getCurrent();
+  t.participants.forEach(p=>{
+    p.status = "normal";
+    p.times = new Array(t.timeCount).fill(null);
+  });
+  renderAll();
+  saveTournament(t);
+}
+
+function clearAllParticipants(){
+  if(!confirm("出走リスト内のすべての選手データを一括削除します。よろしいですか？\nこの操作は元に戻せません。")) return;
+  const t = getCurrent();
+  t.participants = [];
+  t.nextNumber = 1;
+  renderAll();
+  saveTournament(t);
+}
+
+function toggleStatus(id){
+  const t = getCurrent();
+  const p = t.participants.find(p=>p.id===id);
+  if(!p) return;
+  if(p.status === "normal") p.status = "retire";
+  else if(p.status === "retire") p.status = "dns";
+  else p.status = "normal";
+  renderAll();
+  saveTournament(t);
+}
+
+function goalRun(id, runIndex){
+  const t = getCurrent();
+  const p = t.participants.find(p=>p.id===id);
+  if(!p) return;
+  const run = t.runs[runIndex];
+  if(!run || !run.started || !run.startTime){ alert((runIndex+1)+"本目はまだ開始されていません"); return; }
+  if(run.ended){ alert((runIndex+1)+"本目は終了しています。手動でタイムを編集してください。"); return; }
+  const elapsed = (Date.now() - run.startTime.getTime())/1000;
+  resizeTimes(p, t.timeCount);
+  p.times[runIndex] = elapsed;
+  renderAll();
+  saveTournament(t);
+}
+
+function updateField(id, field, value){
+  const t = getCurrent();
+  const p = t.participants.find(p=>p.id===id);
+  if(!p) return;
+  if(field === "age"){
+    p.age = value === "" ? null : parseInt(value,10);
+  } else if(field === "number"){
+    p.number = value === "" ? "" : parseInt(value,10);
+  } else {
+    p[field] = value;
+  }
+  renderAll();
+  saveTournament(t);
+}
+
+function updateRunTime(id, runIndex, value){
+  const t = getCurrent();
+  const p = t.participants.find(p=>p.id===id);
+  if(!p) return;
+  resizeTimes(p, t.timeCount);
+  p.times[runIndex] = value === "" ? null : hmsToSec(value);
+  renderAll();
+  saveTournament(t);
+}
+
+/* ===================== レンダリング: 出走リスト ===================== */
+function participantRow(p, timeCount){
+  const t = getCurrent();
+  const statusTag = p.status === "retire" ? '<span class="status-tag retire">リタイア</span>'
+                    : p.status === "dns" ? '<span class="status-tag dns">DNS</span>' : '';
+  resizeTimes(p, timeCount);
+
+  let runCells = "";
+  for(let i=0;i<timeCount;i++){
+    const val = p.times[i];
+    const finished = val != null;
+    const run = t.runs[i];
+    // 確定済(finished)の状態の時はボタンを無効化(disabled)
+    const goalDisabled = (!run || !run.started || run.ended || p.status !== "normal" || finished);
+    runCells += `
+      <td>
+        <div class="run-cell">
+          <button class="goal-btn ${finished?'done':''}" ${goalDisabled?'disabled':''} onclick="goalRun(${p.id},${i})">
+            ${finished ? '確定済' : 'Goal'}
+          </button>
+          <input class="time-input" placeholder="hh:mm:ss" value="${val!=null ? secToHMS(val) : ''}"
+            onchange="updateRunTime(${p.id},${i},this.value)">
+        </div>
+      </td>`;
+  }
+
+  return `
+  <tr>
+    <td><input class="time-input small-input" style="width:55px" value="${p.number}"
+      onchange="updateField(${p.id},'number',this.value)"></td>
+    <td class="name-cell" onclick="toggleStatus(${p.id})" title="クリックでリタイア/DNS切替">
+      <input class="time-input" style="width:120px;border:none;background:transparent;padding:0;font-family:inherit;color:var(--text);"
+        value="${p.name}" onclick="event.stopPropagation()" onchange="updateField(${p.id},'name',this.value)">${statusTag}
+    </td>
+    <td><input type="number" class="time-input small-input" value="${p.age ?? ''}"
+      onchange="updateField(${p.id},'age',this.value)"></td>
+    <td>${t.defaultCategory || 'ノーマル'}</td>
+    ${runCells}
+    <td style="font-family:var(--font-mono);font-weight:bold;">${secToHMS(participantTotal(p, timeCount))}</td>
+    <td><button class="btn secondary" style="padding:4px 10px;font-size:12px;height:auto;" onclick="removeParticipant(${p.id})">削除</button></td>
+  </tr>`;
+}
+
+function renderGenderTable(gender, wrapId){
+  const t = getCurrent();
+  const timeCount = t.timeCount || 1;
+  const list = t.participants.filter(p=>p.gender===gender)
+                 .sort((a,b)=> (parseInt(a.number)||0) - (parseInt(b.number)||0));
+  const wrap = document.getElementById(wrapId);
+  if(list.length === 0){
+    wrap.innerHTML = '<div class="empty">まだ選手が登録されていません</div>';
+    return;
+  }
+  let runHeaders = "";
+  for(let i=0;i<timeCount;i++){
+    runHeaders += `<th>${i+1}本目</th>`;
+  }
+  wrap.innerHTML = `
+  <table>
+    <thead><tr>
+      <th>番号</th><th>名前</th><th>年齢</th><th>カテゴリー</th>${runHeaders}<th>合計</th><th></th>
+    </tr></thead>
+    <tbody>${list.map(p=>participantRow(p, timeCount)).join("")}</tbody>
+  </table>`;
+}
+
+/* ===================== リザルト ===================== */
+function finishers(list, timeCount){
+  return list
+    .filter(p=>p.status==="normal")
+    .map(p=>({p, total: participantTotal(p, timeCount)}))
+    .filter(x=>x.total != null)
+    .sort((a,b)=>a.total-b.total)
+    .map(x=>x.p);
+}
+
+function rankTable(list, timeCount){
+  if(list.length===0) return '<div class="empty">完走者がいません</div>';
+  const cat = getCurrent().defaultCategory || 'ノーマル';
+
+  let runHeaders = "";
+  for(let i=0;i<timeCount;i++){
+    runHeaders += `<th>${i+1}本目</th>`;
+  }
+
+  return `
+  <table>
+    <thead><tr><th>順位</th><th>番号</th><th>名前</th><th>性別</th><th>年齢</th><th>カテゴリー</th>${runHeaders}<th>タイム(合計)</th></tr></thead>
+    <tbody>
+      ${list.map((p,i)=>{
+        let runCells = "";
+        for(let r=0;r<timeCount;r++){
+          const tVal = (p.times && p.times[r] != null) ? secToHMS(p.times[r]) : '-';
+          runCells += `<td style="font-family:var(--font-mono);">${tVal}</td>`;
+        }
+        return `
+        <tr>
+          <td class="rank-medal ${i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':''}">${i+1}</td>
+          <td class="num">${p.number}</td>
+          <td>${p.name}</td>
+          <td>${p.gender==='M'?'男':'女'}</td>
+          <td>${p.age ?? '-'}</td>
+          <td>${cat}</td>
+          ${runCells}
+          <td style="font-family:var(--font-mono);font-weight:bold;">${secToHMS(participantTotal(p, timeCount))}</td>
+        </tr>`;
+      }).join("")}
+    </tbody>
+  </table>`;
+}
+
+function renderRankings(){
+  const t = getCurrent();
+  const timeCount = t.timeCount || 1;
+  const all = finishers(t.participants, timeCount);
+  document.getElementById('overallRankWrap').innerHTML = rankTable(all, timeCount);
+
+  const men = finishers(t.participants.filter(p=>p.gender==='M'), timeCount);
+  const women = finishers(t.participants.filter(p=>p.gender==='F'), timeCount);
+  document.getElementById('menRankWrap').innerHTML = rankTable(men, timeCount);
+  document.getElementById('womenRankWrap').innerHTML = rankTable(women, timeCount);
+
+  const groups = {};
+  all.forEach(p=>{
+    const decade = ageDecade(p.age);
+    const key = decade + "_" + p.gender;
+    if(!groups[key]) groups[key] = [];
+    groups[key].push(p);
+  });
+  const decadesOrder = Object.keys(groups).sort((a,b)=>{
+    const da = a.split("_")[0], db = b.split("_")[0];
+    const na = da === "不明" ? 9999 : parseInt(da);
+    const nb = db === "不明" ? 9999 : parseInt(db);
+    if(na!==nb) return na-nb;
+    return a.split("_")[1].localeCompare(b.split("_")[1]);
+  });
+  let html = "";
+  decadesOrder.forEach(key=>{
+    const [decade, gender] = key.split("_");
+    const genderLabel = gender === 'M' ? '男子' : '女子';
+    html += `<div class="section-sub">${decade} ${genderLabel}</div>` + rankTable(groups[key], timeCount);
+  });
+  document.getElementById('ageRankWrap').innerHTML = html || '<div class="empty">完走者がいません</div>';
+}
+
+/* ===================== 全体再描画 ===================== */
+function renderAll(){
+  renderGenderTable('M','menTableWrap');
+  renderGenderTable('F','womenTableWrap');
+  renderRankings();
+}
+
+/* ===================== タブ切替 ===================== */
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentTab = btn.dataset.tab;
+    ['settings','entries','ranking'].forEach(tb=>{
+      document.getElementById('tab-'+tb).style.display = (tb===currentTab) ? 'block' : 'none';
+    });
+    if(currentTab === 'ranking') renderRankings();
+    if(currentTab === 'entries') renderAll();
+  });
+});
+
+/* ===================== CSV / JSON 出力入力 ===================== */
+function downloadBlob(content, filename, mime){
+  const blob = new Blob([content], {type:mime});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function csvEscape(v){
+  if(v == null) return "";
+  const s = String(v);
+  if(s.includes(",") || s.includes('"') || s.includes("\n")){
+    return '"' + s.replace(/"/g,'""') + '"';
+  }
+  return s;
+}
+
+function exportCSV(){
+  const t = getCurrent();
+  const timeCount = t.timeCount || 1;
+  const header = ["番号","名前","性別","年齢","カテゴリー","状態"];
+  for(let i=0;i<timeCount;i++) header.push((i+1)+"本目");
+  header.push("合計タイム","総合順位");
+  const rows = [header];
+
+  const all = finishers(t.participants, timeCount);
+  const rankMap = {};
+  all.forEach((p,i)=>{ rankMap[p.id] = i+1; });
+
+  const sorted = [...t.participants].sort((a,b)=>(parseInt(a.number)||0)-(parseInt(b.number)||0));
+  sorted.forEach(p=>{
+    const statusLabel = p.status === "retire" ? "リタイア" : p.status === "dns" ? "DNS" : "完走";
+    const row = [p.number, p.name, p.gender==='M'?'男':'女', p.age ?? '', t.defaultCategory || '', statusLabel];
+    resizeTimes(p, timeCount);
+    for(let i=0;i<timeCount;i++){
+      row.push(p.times[i] != null ? secToHMS(p.times[i]) : '');
+    }
+    const total = participantTotal(p, timeCount);
+    row.push(total != null ? secToHMS(total) : '');
+    row.push(rankMap[p.id] ?? '');
+    rows.push(row);
+  });
+  const csv = "\uFEFF" + rows.map(r=>r.map(csvEscape).join(",")).join("\n");
+  const fname = (t.name || "race_result") + "_結果.csv";
+  downloadBlob(csv, fname, "text/csv;charset=utf-8");
+}
+
+function exportJSON(){
+  const data = tournaments.map(t=>({
+    ...t,
+    runs: t.runs.map(r=>({...r, startTime: r.startTime ? r.startTime.toISOString() : null}))
+  }));
+  downloadBlob(JSON.stringify(data,null,2), "race_data_全大会.json", "application/json");
+}
+
+function importJSON(evt){
+  const file = evt.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e=>{
+    try{
+      const data = JSON.parse(e.target.result);
+      const arr = Array.isArray(data) ? data : [data];
+      tournaments = arr.map(t=>{
+        const obj = {...t};
+        if(!obj.timeCount) obj.timeCount = 1;
+        if(Array.isArray(obj.runs)){
+          obj.runs = obj.runs.map(r=>({...r, startTime: r.startTime ? new Date(r.startTime) : null}));
+        } else if(obj.startTime !== undefined){
+          obj.runs = [{
+            startTime: obj.startTime ? new Date(obj.startTime) : null,
+            timeLimitMinutes: obj.timeLimitMinutes || null,
+            started: !!obj.contestStarted,
+            ended: !!obj.contestEnded
+          }];
+        } else {
+          obj.runs = [ newRun() ];
+        }
+        resizeRuns(obj);
+        if(!obj.defaultCategory) obj.defaultCategory = "ノーマル";
+        if(!obj.nextNumber){
+          const maxNum = (obj.participants||[]).reduce((m,p)=>Math.max(m, parseInt(p.number)||0), 0);
+          obj.nextNumber = maxNum + 1;
+        }
+        (obj.participants||[]).forEach(p=>{
+          if(!Array.isArray(p.times)){
+            p.times = p.finishSec != null ? [p.finishSec] : [null];
+          }
+          if(p.category !== "ノーマル" && p.category !== "エキスパート") p.category = "ノーマル";
+          resizeTimes(p, obj.timeCount);
+        });
+        return obj;
+      });
+      activeTournamentId = tournaments[0].id;
+      syncSettingsInputs();
+      renderSidebar();
+      renderHeader();
+      renderAll();
+      ensureTicking();
+      tournaments.forEach(t=>saveTournament(t));
+      alert("データを読み込みました");
+    } catch(err){
+      alert("読み込みに失敗しました: " + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+/* ===================== 初期化 ===================== */
+syncSettingsInputs();
+renderSidebar();
+renderHeader();
+renderAll();
+initFirebaseSync();
+</script>
+</body>
+</html>
