@@ -99,7 +99,6 @@
 
   .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
   .section-sub{font-family:var(--font-display);font-size:13px;color:var(--muted);margin:18px 0 8px;letter-spacing:0.5px;padding-bottom:6px;border-bottom:2px solid var(--line);}
-  footer.note{max-width:1120px;margin:0 auto;padding:0 24px;color:var(--muted);font-size:12px;}
 
   .run-block{border:1px solid var(--line);border-radius:6px;padding:12px;margin-bottom:10px;background:var(--panel-2);}
   .run-block-title{font-weight:700;font-size:13px;margin-bottom:8px;}
@@ -107,6 +106,50 @@
   .radio-group{display:flex;gap:18px;}
   .radio-option{display:flex;align-items:center;gap:6px;font-size:14px;}
   .radio-option input{width:auto;height:auto;}
+
+  /* ===== レスポンシブ対応（スマートフォン） ===== */
+  @media (max-width: 780px){
+    .app{flex-direction:column;}
+    .sidebar{
+      width:100%;border-right:none;border-bottom:1px solid var(--line);
+      padding:10px 12px;
+    }
+    .sidebar h3{margin:0 0 6px 2px;}
+    #tournamentList{display:flex;flex-direction:row;gap:6px;overflow-x:auto;padding-bottom:4px;}
+    .tourn-item{flex:0 0 auto;white-space:nowrap;border-left:none;border-bottom:3px solid transparent;}
+    .tourn-item.active{border-left:none;border-bottom-color:var(--accent);}
+    .add-tourn-btn{width:auto;flex:0 0 auto;margin-top:0;padding:10px 14px;}
+    #authBox{margin-top:10px;padding-top:10px;}
+
+    header{padding:12px 14px 10px;}
+    h1{font-size:17px;}
+    .status-line{font-size:11px;}
+    .status-row{gap:10px;}
+
+    nav{padding:0 6px;}
+    nav button{padding:10px 10px;font-size:13px;}
+
+    main{padding:12px;}
+    .panel{padding:12px;}
+    .panel h2{font-size:13px;}
+
+    .row .field{min-width:120px;}
+
+    table{font-size:12px;}
+    th,td{padding:6px 4px;}
+    .time-input{width:82px;font-size:12px;}
+    .goal-btn{padding:5px 8px;font-size:11px;}
+    .small-input{width:56px;}
+    .gender-select,.category-select{width:76px;}
+  }
+
+  @media (max-width: 480px){
+    h1{font-size:15px;}
+    .header-top{gap:6px;}
+    .badge{font-size:10px;padding:2px 6px;}
+    .row .field{min-width:100%;}
+    button.btn{font-size:13px;padding:0 12px;}
+  }
 </style>
 </head>
 <body>
@@ -171,22 +214,6 @@
             </div>
           </div>
         </div>
-
-        <div class="panel">
-          <h2>データ出力・入出力</h2>
-          <div class="toolbar">
-            <button class="btn" onclick="exportCSV()">結果をCSV出力</button>
-            <button class="btn secondary" onclick="exportJSON()">全大会データをJSON保存</button>
-            <label class="btn secondary" style="cursor:pointer;display:inline-flex;align-items:center;">
-              JSON読み込み
-              <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importJSON(event)">
-            </label>
-          </div>
-          <p style="color:var(--muted);font-size:12px;">
-            ※このアプリはブラウザ上のメモリにのみデータを保持します（ページを再読み込みすると消えます）。
-            こまめに「JSON保存」でファイルに書き出し、必要な時に「JSON読み込み」で復元してください（全大会分がまとめて保存されます）。
-          </p>
-        </div>
       </section>
 
       <!-- ============ 出走リスト ============ -->
@@ -224,7 +251,7 @@
       <!-- ============ リザルトタブ ============ -->
       <section id="tab-ranking" style="display:none;">
         <div class="panel">
-          <h2>総合リザルト</h2>
+          <h2>総合順位</h2>
           <div id="overallRankWrap"></div>
         </div>
         <div class="panel">
@@ -235,13 +262,11 @@
           <div id="womenRankWrap"></div>
         </div>
         <div class="panel">
-          <h2>年代別×男女リザルト</h2>
+          <h2>年代別リザルト</h2>
           <div id="ageRankWrap"></div>
         </div>
       </section>
     </main>
-
-    <footer class="note">Team Sky Kyoto 大会記録システム — 全ての項目はいつでも手動で編集できます。</footer>
   </div>
 </div>
 
@@ -1009,116 +1034,6 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
     if(currentTab === 'entries') renderAll();
   });
 });
-
-/* ===================== CSV / JSON 出力入力 ===================== */
-function downloadBlob(content, filename, mime){
-  const blob = new Blob([content], {type:mime});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = filename;
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-
-function csvEscape(v){
-  if(v == null) return "";
-  const s = String(v);
-  if(s.includes(",") || s.includes('"') || s.includes("\n")){
-    return '"' + s.replace(/"/g,'""') + '"';
-  }
-  return s;
-}
-
-function exportCSV(){
-  const t = getCurrent();
-  const timeCount = t.timeCount || 1;
-  const header = ["番号","名前","性別","年齢","カテゴリー","状態"];
-  for(let i=0;i<timeCount;i++) header.push((i+1)+"本目");
-  header.push("合計タイム","総合順位");
-  const rows = [header];
-
-  const all = finishers(t.participants, timeCount);
-  const rankMap = {};
-  all.forEach((p,i)=>{ rankMap[p.id] = i+1; });
-
-  const sorted = [...t.participants].sort((a,b)=>(parseInt(a.number)||0)-(parseInt(b.number)||0));
-  sorted.forEach(p=>{
-    const statusLabel = p.status === "retire" ? "リタイア" : p.status === "dns" ? "DNS" : "完走";
-    const row = [p.number, p.name, p.gender==='M'?'男':'女', p.age ?? '', t.defaultCategory || '', statusLabel];
-    resizeTimes(p, timeCount);
-    for(let i=0;i<timeCount;i++){
-      row.push(p.times[i] != null ? secToHMS(p.times[i]) : '');
-    }
-    const total = participantTotal(p, timeCount);
-    row.push(total != null ? secToHMS(total) : '');
-    row.push(rankMap[p.id] ?? '');
-    rows.push(row);
-  });
-  const csv = "\uFEFF" + rows.map(r=>r.map(csvEscape).join(",")).join("\n");
-  const fname = (t.name || "race_result") + "_結果.csv";
-  downloadBlob(csv, fname, "text/csv;charset=utf-8");
-}
-
-function exportJSON(){
-  const data = tournaments.map(t=>({
-    ...t,
-    runs: t.runs.map(r=>({...r, startTime: r.startTime ? r.startTime.toISOString() : null}))
-  }));
-  downloadBlob(JSON.stringify(data,null,2), "race_data_全大会.json", "application/json");
-}
-
-function importJSON(evt){
-  const file = evt.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = e=>{
-    try{
-      const data = JSON.parse(e.target.result);
-      const arr = Array.isArray(data) ? data : [data];
-      tournaments = arr.map(t=>{
-        const obj = {...t};
-        if(!obj.timeCount) obj.timeCount = 1;
-        if(Array.isArray(obj.runs)){
-          obj.runs = obj.runs.map(r=>({...r, startTime: r.startTime ? new Date(r.startTime) : null}));
-        } else if(obj.startTime !== undefined){
-          obj.runs = [{
-            startTime: obj.startTime ? new Date(obj.startTime) : null,
-            timeLimitMinutes: obj.timeLimitMinutes || null,
-            started: !!obj.contestStarted,
-            ended: !!obj.contestEnded
-          }];
-        } else {
-          obj.runs = [ newRun() ];
-        }
-        resizeRuns(obj);
-        if(!obj.defaultCategory) obj.defaultCategory = "ノーマル";
-        if(!obj.nextNumber){
-          const maxNum = (obj.participants||[]).reduce((m,p)=>Math.max(m, parseInt(p.number)||0), 0);
-          obj.nextNumber = maxNum + 1;
-        }
-        (obj.participants||[]).forEach(p=>{
-          if(!Array.isArray(p.times)){
-            p.times = p.finishSec != null ? [p.finishSec] : [null];
-          }
-          if(p.category !== "ノーマル" && p.category !== "エキスパート") p.category = "ノーマル";
-          resizeTimes(p, obj.timeCount);
-        });
-        return obj;
-      });
-      activeTournamentId = tournaments[0].id;
-      syncSettingsInputs();
-      renderSidebar();
-      renderHeader();
-      renderAll();
-      ensureTicking();
-      tournaments.forEach(t=>saveTournament(t));
-      alert("データを読み込みました");
-    } catch(err){
-      alert("読み込みに失敗しました: " + err.message);
-    }
-  };
-  reader.readAsText(file);
-}
 
 /* ===================== 初期化 ===================== */
 syncSettingsInputs();
