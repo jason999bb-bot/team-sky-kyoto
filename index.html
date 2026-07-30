@@ -26,9 +26,9 @@
 
   .sidebar{width:240px;flex-shrink:0;background:var(--panel-2);border-right:1px solid var(--line);padding:16px 12px;}
   .sidebar h3{font-family:var(--font-display);font-size:12px;letter-spacing:0.5px;color:var(--muted);text-transform:uppercase;margin:0 0 10px 4px;}
-  .tourn-item{display:flex;align-items:center;justify-content:space-between;gap:6px;width:100%;text-align:left;background:none;border:none;border-left:3px solid transparent;padding:10px 8px;margin-bottom:2px;border-radius:4px;cursor:pointer;font-family:var(--font-body);font-size:13.5px;color:var(--text);}
-  .tourn-item:hover{background:#eee;}
-  .tourn-item.active{background:#fff;border-left-color:var(--accent);color:var(--accent);font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,0.08);}
+  .tourn-item{display:flex;align-items:center;justify-content:space-between;gap:6px;width:100%;text-align:left;background:#fff;border:1px solid var(--line);padding:10px 10px;margin-bottom:6px;border-radius:6px;cursor:pointer;font-family:var(--font-body);font-size:13.5px;color:var(--text);}
+  .tourn-item:hover{background:#f7f2f2;}
+  .tourn-item.active{background:#fdeeef;border-color:var(--accent);color:var(--accent);font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,0.08);}
   .tourn-item .del{color:var(--muted);font-size:11px;padding:2px 6px;border-radius:3px;}
   .tourn-item .del:hover{background:var(--accent-dark);color:#fff;}
   .add-tourn-btn{width:100%;margin-top:10px;background:var(--accent);color:#fff;border:none;border-radius:5px;padding:10px;font-weight:700;cursor:pointer;font-size:13px;}
@@ -90,18 +90,53 @@
   .gender-select,.category-select{width:90px;}
   .dnf-select{width:80px;}
   .name-input{width:150px;}
-  th.run-th,td.run-td{text-align:center;}
-  .run-cell{display:flex;flex-direction:column;align-items:center;gap:4px;}
+  th.run-th,td.run-td{text-align:left;}
+  .run-cell{display:flex;flex-direction:column;align-items:flex-start;gap:4px;}
   .run-cell .time-input{width:88px;text-align:center;}
   .run-cell .goal-btn{width:88px;height:56px;}
   td.run-td + td.run-td{padding-left:16px;}
   th.run-th + th.run-th{padding-left:16px;}
+
+  /* ===== GOALキャプチャ ===== */
+  .goal-capture-row{display:flex;align-items:flex-start;gap:14px;padding:12px 0;border-bottom:1px solid var(--line);}
+  .goal-capture-row:last-child{border-bottom:none;}
+  .big-goal-btn{
+    flex-shrink:0;width:110px;height:90px;background:var(--accent);color:#fff;border:none;border-radius:10px;
+    font-weight:800;font-size:16px;line-height:1.3;cursor:pointer;box-shadow:0 2px 6px rgba(224,32,47,0.3);
+  }
+  .big-goal-btn:active{transform:translateY(1px);}
+  .big-goal-btn:disabled{background:var(--panel-2);color:var(--muted);box-shadow:none;cursor:not-allowed;}
+  .goal-queue{flex:1;display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start;min-height:56px;}
+  .goal-queue-empty{color:var(--muted);font-size:13px;align-self:center;}
+  .goal-box{
+    position:relative;background:var(--panel-2);border:2px solid var(--accent);border-radius:8px;
+    padding:10px 26px 10px 14px;font-family:var(--font-mono);font-size:15px;font-weight:700;color:var(--text);
+    cursor:pointer;display:flex;align-items:center;
+  }
+  .goal-box .goal-box-delete{
+    position:absolute;top:2px;right:4px;color:var(--muted);font-size:13px;font-weight:bold;line-height:1;padding:2px;
+  }
+  .goal-box .goal-box-delete:hover{color:var(--accent-dark);}
+  .goal-box.expanded{
+    flex-direction:column;align-items:stretch;gap:8px;padding:12px 26px 12px 14px;cursor:default;min-width:150px;
+  }
+  .goal-number-input{height:34px;padding:0 8px;border:1px solid var(--line);border-radius:4px;font-family:var(--font-body);font-size:14px;width:100%;}
 
   .empty{color:var(--muted);font-size:13px;padding:20px 0;text-align:center;}
   .rank-medal{font-family:var(--font-mono);font-weight:bold;}
   .rank-1{color:#c9860a;}
   .rank-2{color:#8a8a8a;}
   .rank-3{color:#a4611f;}
+  .rank-table{table-layout:fixed;}
+  .rank-table th,.rank-table td{text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .rank-table th:nth-child(1),.rank-table td:nth-child(1){width:56px;}
+  .rank-table th:nth-child(2),.rank-table td:nth-child(2){width:64px;}
+  .rank-table th:nth-child(3),.rank-table td:nth-child(3){width:140px;text-align:left;white-space:normal;}
+  .rank-table th:nth-child(4),.rank-table td:nth-child(4){width:56px;}
+  .rank-table th:nth-child(5),.rank-table td:nth-child(5){width:56px;}
+  .rank-table th:nth-child(6),.rank-table td:nth-child(6){width:110px;}
+  .rank-table th:not(:nth-child(-n+6)),.rank-table td:not(:nth-child(-n+6)){width:100px;}
+  .rank-table th:last-child,.rank-table td:last-child{width:110px;}
 
   .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
   .section-sub{font-family:var(--font-display);font-size:13px;color:var(--muted);margin:18px 0 8px;letter-spacing:0.5px;padding-bottom:6px;border-bottom:2px solid var(--line);}
@@ -113,6 +148,16 @@
   .radio-option{display:flex;align-items:center;gap:6px;font-size:14px;}
   .radio-option input{width:auto;height:auto;}
 
+  /* ===== 折りたたみUI ===== */
+  .collapsible-header{
+    background:none;border:none;width:100%;text-align:left;cursor:pointer;padding:0;font:inherit;
+    display:flex;align-items:center;justify-content:space-between;gap:8px;
+  }
+  .collapsible-arrow{display:inline-block;color:var(--accent);font-size:13px;transition:transform 0.2s ease;flex-shrink:0;}
+  .collapsible-arrow.open{transform:rotate(90deg);}
+  .collapsible-content{overflow:hidden;margin-top:12px;}
+  .collapsible-content.collapsed{display:none;margin-top:0;}
+
   /* ===== レスポンシブ対応（スマートフォン） ===== */
   @media (max-width: 780px){
     .app{flex-direction:column;}
@@ -121,10 +166,9 @@
       padding:10px 12px;
     }
     .sidebar h3{margin:0 0 6px 2px;}
-    #tournamentList{display:flex;flex-direction:row;gap:6px;overflow-x:auto;padding-bottom:4px;}
-    .tourn-item{width:auto;flex:0 0 auto;white-space:nowrap;border-left:none;border-bottom:3px solid transparent;}
-    .tourn-item.active{border-left:none;border-bottom-color:var(--accent);}
-    .add-tourn-btn{width:auto;flex:0 0 auto;margin-top:0;padding:10px 14px;}
+    #tournamentList{display:flex;flex-direction:column;gap:0;}
+    .tourn-item{width:100%;white-space:normal;}
+    .add-tourn-btn{width:100%;flex:0 0 auto;margin-top:0;padding:10px 14px;}
     #authBox{margin-top:10px;padding-top:10px;}
 
     header{padding:12px 14px 10px;}
@@ -142,6 +186,10 @@
     .row{gap:6px;}
     .row .field{min-width:100px;margin-bottom:8px;}
     .field label{font-size:11px;margin-bottom:2px;}
+
+    .goal-capture-row{flex-direction:column;align-items:stretch;gap:8px;}
+    .big-goal-btn{width:100%;height:64px;font-size:15px;}
+    .goal-queue{min-height:0;}
     .field input,.field select{height:34px;font-size:13px;padding:0 8px;}
     button.btn{height:34px;font-size:13px;padding:0 12px;}
 
@@ -165,6 +213,19 @@
     .badge{font-size:10px;padding:2px 6px;}
     .row .field{min-width:100%;}
     button.btn{font-size:13px;padding:0 12px;}
+  }
+
+  /* ===== 印刷 / PDF出力 ===== */
+  @media print{
+    .sidebar, nav, .no-print, #syncStatus, .status-line{display:none !important;}
+    .app{display:block !important;}
+    .content{width:100% !important;}
+    header{position:static;border-bottom:2px solid var(--accent);}
+    #tab-settings, #tab-entries{display:none !important;}
+    #tab-ranking{display:block !important;}
+    main{padding:0;max-width:100%;}
+    .panel{border:none;box-shadow:none;padding:0 0 16px 0;margin-bottom:16px;page-break-inside:avoid;}
+    table{font-size:12px;}
   }
 
   /* ===== カスタムダイアログ ===== */
@@ -204,7 +265,15 @@
     <h3>大会一覧</h3>
     <div id="tournamentList"></div>
     <button class="add-tourn-btn" onclick="addTournament()">＋ 新しい大会を追加</button>
-    <div id="authBox" style="margin-top:16px;padding-top:16px;border-top:1px solid var(--line);"></div>
+    <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--line);">
+      <button class="collapsible-header" onclick="toggleCollapse('authBox')">
+        <span style="font-size:12px;color:var(--muted);font-weight:700;">スタッフログイン</span>
+        <span class="collapsible-arrow" id="authBoxArrow">▶</span>
+      </button>
+      <div id="authBoxContent" class="collapsible-content collapsed">
+        <div id="authBox"></div>
+      </div>
+    </div>
   </div>
 
   <div class="content">
@@ -226,7 +295,10 @@
       <!-- ============ 設定タブ ============ -->
       <section id="tab-settings">
         <div class="panel">
-          <h2>大会情報</h2>
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <h2 style="margin:0;">大会情報</h2>
+            <button class="btn danger small" onclick="deleteTournament(event, activeTournamentId)">この大会を削除</button>
+          </div>
 
           <div class="field">
             <label>大会名</label>
@@ -270,20 +342,30 @@
       <!-- ============ 出走リスト ============ -->
       <section id="tab-entries" style="display:none;">
         <div class="panel">
-          <h2>選手登録</h2>
-          <div class="row">
-            <div class="field"><label>名前</label><input type="text" id="newName"></div>
-            <div class="field">
-              <label>性別</label>
-              <select id="newGender"><option value="M">男</option><option value="F">女</option></select>
+          <button class="collapsible-header" onclick="toggleCollapse('registerPanel')">
+            <h2 style="margin:0;">選手登録</h2>
+            <span class="collapsible-arrow" id="registerPanelArrow">▶</span>
+          </button>
+          <div id="registerPanelContent" class="collapsible-content collapsed">
+            <div class="row">
+              <div class="field"><label>名前</label><input type="text" id="newName"></div>
+              <div class="field">
+                <label>性別</label>
+                <select id="newGender"><option value="M">男</option><option value="F">女</option></select>
+              </div>
+              <div class="field"><label>年齢</label><input type="number" id="newAge" min="0"></div>
+              <div class="field">
+                <label>カテゴリー</label>
+                <input type="text" id="newCategoryDisplay" value="ノーマル" disabled style="opacity:0.7;">
+              </div>
             </div>
-            <div class="field"><label>年齢</label><input type="number" id="newAge" min="0"></div>
-            <div class="field">
-              <label>カテゴリー</label>
-              <input type="text" id="newCategoryDisplay" value="ノーマル" disabled style="opacity:0.7;">
-            </div>
+            <button class="btn" onclick="addParticipant()">選手を追加</button>
           </div>
-          <button class="btn" onclick="addParticipant()">選手を追加（番号は自動採番）</button>
+        </div>
+
+        <div class="panel">
+          <h2>GOALキャプチャ</h2>
+          <div id="goalCaptureWrap"></div>
         </div>
 
         <div class="panel">
@@ -301,16 +383,24 @@
 
       <!-- ============ リザルトタブ ============ -->
       <section id="tab-ranking" style="display:none;">
+        <div class="panel no-print">
+          <h2>リザルト出力</h2>
+          <div class="toolbar">
+            <button class="btn" onclick="printResult()">PDF出力（印刷）</button>
+            <button class="btn secondary" onclick="copyResultLink()">リザルトリンクをコピー</button>
+            <button class="btn danger" onclick="resetAllTimes()">記録をクリア</button>
+          </div>
+        </div>
         <div class="panel">
           <h2>総合順位</h2>
-          <div id="overallRankWrap"></div>
+          <div class="table-scroll" id="overallRankWrap"></div>
         </div>
         <div class="panel">
           <h2>男女別順位</h2>
           <div class="section-sub">男子</div>
-          <div id="menRankWrap"></div>
+          <div class="table-scroll" id="menRankWrap"></div>
           <div class="section-sub">女子</div>
-          <div id="womenRankWrap"></div>
+          <div class="table-scroll" id="womenRankWrap"></div>
         </div>
         <div class="panel">
           <h2>年代別順位</h2>
@@ -353,7 +443,8 @@ function newTournament(name){
     runs: [ newRun() ],
     nextId: 1,
     nextNumber: 1,
-    participants: []
+    participants: [],
+    pendingGoals: []
   };
 }
 
@@ -381,6 +472,7 @@ function serializeTournament(t){
       ended: !!r.ended
     })),
     participants: t.participants || [],
+    pendingGoals: t.pendingGoals || [],
     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
   };
 }
@@ -399,7 +491,8 @@ function deserializeTournament(id, data){
       started: !!r.started,
       ended: !!r.ended
     })),
-    participants: data.participants || []
+    participants: data.participants || [],
+    pendingGoals: data.pendingGoals || []
   };
   resizeRuns(obj);
   resizeAllTimes(obj);
@@ -449,6 +542,10 @@ function initFirebaseSync(){
     if(!tournaments.find(t=>t.id===activeTournamentId)){
       activeTournamentId = tournaments[0] ? tournaments[0].id : null;
     }
+    if(!urlParamsApplied){
+      applyUrlParams();
+      urlParamsApplied = true;
+    }
     syncSettingsInputs();
     renderSidebar();
     renderHeader();
@@ -461,6 +558,47 @@ function initFirebaseSync(){
   });
 }
 
+/* ===================== リザルト出力（PDF・共有リンク） ===================== */
+let urlParamsApplied = false;
+
+function applyUrlParams(){
+  const params = new URLSearchParams(window.location.search);
+  const tid = params.get('tournament');
+  const tab = params.get('tab');
+  if(tid && tournaments.find(t=>t.id===tid)){
+    activeTournamentId = tid;
+  }
+  if(tab && ['settings','entries','ranking'].includes(tab)){
+    currentTab = tab;
+    document.querySelectorAll('.tab-btn').forEach(b=>{
+      b.classList.toggle('active', b.dataset.tab === tab);
+    });
+    ['settings','entries','ranking'].forEach(tb=>{
+      document.getElementById('tab-'+tb).style.display = (tb===tab) ? 'block' : 'none';
+    });
+  }
+}
+
+function printResult(){
+  // 印刷時に必ずリザルトタブが表示されるようにする（@media printでも強制表示するが念のため）
+  window.print();
+}
+
+async function copyResultLink(){
+  const t = getCurrent();
+  const url = new URL(window.location.href);
+  url.search = '';
+  url.searchParams.set('tournament', t.id);
+  url.searchParams.set('tab', 'ranking');
+  const link = url.toString();
+  try{
+    await navigator.clipboard.writeText(link);
+    customAlert("リザルトページのリンクをコピーしました。\n\n" + link);
+  } catch(err){
+    customAlert("自動コピーに失敗しました。以下のリンクを手動でコピーしてください。\n\n" + link);
+  }
+}
+
 function setSyncStatus(ok){
   const el = document.getElementById('syncStatus');
   if(!el) return;
@@ -471,6 +609,23 @@ function setSyncStatus(ok){
     el.textContent = "クラウド同期: エラー（ローカルのみ）";
     el.className = "badge end";
   }
+}
+
+/* ===================== 折りたたみUI ===================== */
+function toggleCollapse(id){
+  const content = document.getElementById(id + 'Content');
+  const arrow = document.getElementById(id + 'Arrow');
+  if(!content) return;
+  content.classList.toggle('collapsed');
+  if(arrow) arrow.classList.toggle('open');
+}
+
+function expandCollapse(id){
+  const content = document.getElementById(id + 'Content');
+  const arrow = document.getElementById(id + 'Arrow');
+  if(!content) return;
+  content.classList.remove('collapsed');
+  if(arrow) arrow.classList.add('open');
 }
 
 /* ===================== スタッフ認証 ===================== */
@@ -616,7 +771,6 @@ function renderSidebar(){
   wrap.innerHTML = tournaments.map(t=>`
     <button class="tourn-item ${t.id===activeTournamentId?'active':''}" onclick="switchTournament('${t.id}')">
       <span>${t.name || "無題の大会"}</span>
-      <span class="del" onclick="deleteTournament(event,'${t.id}')">×</span>
     </button>
   `).join("");
 }
@@ -926,6 +1080,101 @@ function goalRun(id, runIndex){
   saveTournament(t);
 }
 
+/* ===================== GOALキャプチャ（番号未確定のタイム記録） ===================== */
+let expandedGoalId = null;
+
+function captureGoal(runIndex){
+  const t = getCurrent();
+  const run = t.runs[runIndex];
+  if(!run || !run.started || !run.startTime){ customAlert((runIndex+1)+"本目はまだ開始されていません"); return; }
+  if(run.ended){ customAlert((runIndex+1)+"本目は終了しています。"); return; }
+  const elapsed = (Date.now() - run.startTime.getTime())/1000;
+  if(!Array.isArray(t.pendingGoals)) t.pendingGoals = [];
+  t.pendingGoals.push({
+    id: 'g' + Date.now() + Math.floor(Math.random()*1000),
+    runIndex: runIndex,
+    elapsedSec: elapsed
+  });
+  renderGoalCapture();
+  saveTournament(t);
+}
+
+function toggleGoalBox(id){
+  expandedGoalId = (expandedGoalId === id) ? null : id;
+  renderGoalCapture();
+}
+
+function deleteGoalEntry(id){
+  const t = getCurrent();
+  t.pendingGoals = (t.pendingGoals||[]).filter(g=>g.id!==id);
+  if(expandedGoalId === id) expandedGoalId = null;
+  renderGoalCapture();
+  saveTournament(t);
+}
+
+function confirmGoalAssign(id){
+  const t = getCurrent();
+  const entry = (t.pendingGoals||[]).find(g=>g.id===id);
+  if(!entry) return;
+  const input = document.getElementById('goalNumberInput_' + id);
+  const num = input ? input.value.trim() : '';
+  if(!num){ customAlert("番号を入力してください"); return; }
+  const p = t.participants.find(p=>String(parseInt(p.number,10)) === String(parseInt(num,10)));
+  if(!p){ customAlert("番号 " + num + " の選手が見つかりません"); return; }
+  resizeTimes(p, t.timeCount);
+  p.times[entry.runIndex] = entry.elapsedSec;
+  t.pendingGoals = t.pendingGoals.filter(g=>g.id!==id);
+  expandedGoalId = null;
+  renderAll();
+  saveTournament(t);
+}
+
+function renderGoalCapture(){
+  const t = getCurrent();
+  const wrap = document.getElementById('goalCaptureWrap');
+  if(!wrap) return;
+  const timeCount = t.timeCount || 1;
+  const pendingGoals = t.pendingGoals || [];
+
+  let html = "";
+  for(let i=0;i<timeCount;i++){
+    const run = t.runs[i];
+    const disabled = !run || !run.started || run.ended;
+    const queueItems = pendingGoals.filter(g=>g.runIndex===i);
+
+    let queueHtml = "";
+    if(queueItems.length === 0){
+      queueHtml = '';
+    } else {
+      queueHtml = queueItems.map(g=>{
+        if(expandedGoalId === g.id){
+          return `
+          <div class="goal-box expanded">
+            <span class="goal-box-delete" onclick="deleteGoalEntry('${g.id}')">×</span>
+            <div>${secToHMS(g.elapsedSec)}</div>
+            <input type="number" class="goal-number-input" id="goalNumberInput_${g.id}" placeholder="番号">
+            <button class="btn small" onclick="confirmGoalAssign('${g.id}')">確定</button>
+          </div>`;
+        }
+        return `
+        <div class="goal-box" onclick="toggleGoalBox('${g.id}')">
+          <span class="goal-box-delete" onclick="event.stopPropagation();deleteGoalEntry('${g.id}')">×</span>
+          <span>${secToHMS(g.elapsedSec)}</span>
+        </div>`;
+      }).join("");
+    }
+
+    const goalLabel = timeCount === 1 ? 'GOAL' : `${i+1}本目<br>GOAL`;
+    html += `
+    <div class="goal-capture-row">
+      <button class="big-goal-btn" ${disabled?'disabled':''} onclick="captureGoal(${i})">${goalLabel}</button>
+      <div class="goal-queue">${queueHtml}</div>
+    </div>`;
+  }
+
+  wrap.innerHTML = html;
+}
+
 function updateField(id, field, value){
   const t = getCurrent();
   const p = t.participants.find(p=>p.id===id);
@@ -967,7 +1216,7 @@ function participantRow(p, timeCount){
       <td class="run-td">
         <div class="run-cell">
           <button class="goal-btn ${finished?'done':''}" ${goalDisabled?'disabled':''} onclick="goalRun(${p.id},${i})">
-            ${finished ? '確定済' : 'Goal'}
+            ${finished ? 'Finish' : 'Goal'}
           </button>
           <input class="time-input" placeholder="hh:mm:ss" value="${val!=null ? secToHMS(val) : ''}"
             onchange="updateRunTime(${p.id},${i},this.value)">
@@ -1044,7 +1293,7 @@ function rankTable(list, timeCount){
   }
 
   return `
-  <table>
+  <table class="rank-table">
     <thead><tr><th>順位</th><th>番号</th><th>名前</th><th>性別</th><th>年齢</th><th>カテゴリー</th>${runHeaders}<th>タイム(合計)</th></tr></thead>
     <tbody>
       ${list.map((p,i)=>{
@@ -1098,7 +1347,7 @@ function renderRankings(){
   decadesOrder.forEach(key=>{
     const [decade, gender] = key.split("_");
     const genderLabel = gender === 'M' ? '男子' : '女子';
-    html += `<div class="section-sub">${decade} ${genderLabel}</div>` + rankTable(groups[key], timeCount);
+    html += `<div class="section-sub">${decade} ${genderLabel}</div><div class="table-scroll">` + rankTable(groups[key], timeCount) + `</div>`;
   });
   document.getElementById('ageRankWrap').innerHTML = html || '<div class="empty">完走者がいません</div>';
 }
@@ -1107,6 +1356,7 @@ function renderRankings(){
 function renderAll(){
   renderGenderTable('M','menTableWrap');
   renderGenderTable('F','womenTableWrap');
+  renderGoalCapture();
   renderRankings();
 }
 
