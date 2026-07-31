@@ -40,8 +40,14 @@
   h1 .logo{height:46px;width:46px;border-radius:50%;object-fit:cover;flex-shrink:0;}
   h1 .tag{color:var(--accent);}
   .status-line{font-family:var(--font-mono);font-size:15px;color:var(--muted);display:flex;flex-direction:column;gap:4px;}
+  .status-line.collapsed{display:none;}
   .header-bottom-row{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-top:6px;}
   .header-bottom-row .status-line{flex-shrink:0;}
+  .status-line-wrap{display:flex;align-items:flex-start;gap:8px;}
+  .status-toggle{
+    background:none;border:1px solid var(--line);border-radius:4px;width:24px;height:24px;padding:0;
+    color:var(--accent);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;
+  }
   .status-row{display:flex;gap:16px;flex-wrap:wrap;align-items:center;}
   .status-row .run-label{font-family:var(--font-body);font-weight:700;color:var(--text);min-width:50px;}
   .status-line b{color:var(--text);}
@@ -318,7 +324,12 @@
         <div class="sync-row"><span id="syncStatus" class="badge wait">クラウド同期: 接続中…</span></div>
       </div>
       <div class="header-bottom-row">
-        <div class="status-line" id="statusLineWrap"></div>
+        <div class="status-line-wrap">
+          <button class="status-toggle" onclick="toggleStatusLine()">
+            <span class="collapsible-arrow open" id="statusLineArrow">▶</span>
+          </button>
+          <div class="status-line" id="statusLineWrap"></div>
+        </div>
         <div id="goalCaptureWrap" class="goal-capture-header"></div>
       </div>
     </header>
@@ -658,6 +669,14 @@ function expandCollapse(id){
   if(!content) return;
   content.classList.remove('collapsed');
   if(arrow) arrow.classList.add('open');
+}
+
+function toggleStatusLine(){
+  const el = document.getElementById('statusLineWrap');
+  const arrow = document.getElementById('statusLineArrow');
+  if(!el) return;
+  el.classList.toggle('collapsed');
+  if(arrow) arrow.classList.toggle('open');
 }
 
 /* ===================== スタッフ認証 ===================== */
