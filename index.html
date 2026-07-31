@@ -100,8 +100,18 @@
   th.run-th + th.run-th{padding-left:16px;}
 
   /* ===== GOALキャプチャ ===== */
-  .goal-capture-row{display:flex;align-items:flex-start;gap:14px;padding:12px 0;border-bottom:1px solid var(--line);}
+  .goal-capture-row{display:flex;flex-direction:column;gap:8px;padding:12px 0;border-bottom:1px solid var(--line);}
   .goal-capture-row:last-child{border-bottom:none;}
+  .goal-row-header{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .goal-row-label{font-weight:700;font-size:13px;color:var(--text);}
+  .goal-row-toggle{
+    background:none;border:1px solid var(--line);border-radius:4px;width:26px;height:26px;padding:0;
+    color:var(--accent);cursor:pointer;font-size:11px;line-height:1;display:flex;align-items:center;justify-content:center;
+    transition:transform 0.2s ease;flex-shrink:0;
+  }
+  .goal-row-toggle.open{transform:rotate(90deg);}
+  .goal-row-body{display:flex;align-items:flex-start;gap:14px;}
+  .goal-row-body.collapsed{display:none;}
   .big-goal-btn{
     flex-shrink:0;width:110px;height:90px;background:var(--accent);color:#fff;border:none;border-radius:10px;
     font-weight:800;font-size:16px;line-height:1.3;cursor:pointer;box-shadow:0 2px 6px rgba(224,32,47,0.3);
@@ -129,9 +139,7 @@
     display:flex;flex-direction:column;gap:0;flex:1;min-width:260px;
     border:1px solid var(--line);border-radius:8px;padding:10px 14px;
   }
-  .goal-capture-header .goal-capture-row{
-    flex-direction:row;align-items:flex-start;gap:14px;padding:10px 0;border-bottom:1px solid var(--line);
-  }
+  .goal-capture-header .goal-capture-row{padding:8px 0;border-bottom:1px solid var(--line);}
   .goal-capture-header .goal-capture-row:last-child{border-bottom:none;}
   .goal-capture-header .big-goal-btn{width:150px;height:72px;font-size:16px;line-height:1.2;box-shadow:none;flex-shrink:0;}
   .goal-capture-header .goal-queue{flex:1;min-height:72px;gap:8px;flex-wrap:wrap;align-content:flex-start;}
@@ -211,8 +219,8 @@
     .row .field{min-width:100px;margin-bottom:8px;}
     .field label{font-size:11px;margin-bottom:2px;}
 
-    .goal-capture-row{flex-direction:column;align-items:stretch;gap:8px;}
-    .big-goal-btn{width:100%;height:64px;font-size:15px;}
+    .goal-row-body{flex-direction:column;align-items:stretch;gap:8px;}
+    .big-goal-btn, .goal-capture-header .big-goal-btn{width:100%;height:64px;font-size:15px;}
     .goal-queue{min-height:0;}
     .field input,.field select{height:34px;font-size:13px;padding:0 8px;}
     button.btn{height:34px;font-size:13px;padding:0 12px;}
@@ -1106,6 +1114,13 @@ function goalRun(id, runIndex){
 
 /* ===================== GOALキャプチャ（番号未確定のタイム記録） ===================== */
 let expandedGoalId = null;
+let collapsedGoalRows = new Set();
+
+function toggleGoalRowCollapse(runIndex){
+  if(collapsedGoalRows.has(runIndex)) collapsedGoalRows.delete(runIndex);
+  else collapsedGoalRows.add(runIndex);
+  renderGoalCapture();
+}
 
 function captureGoal(runIndex){
   const t = getCurrent();
@@ -1188,11 +1203,18 @@ function renderGoalCapture(){
       }).join("");
     }
 
-    const goalLabel = timeCount === 1 ? 'GOAL' : `${i+1}本目<br>GOAL`;
+    const goalLabel = 'GOAL';
+    const rowCollapsed = collapsedGoalRows.has(i);
     html += `
     <div class="goal-capture-row">
-      <button class="big-goal-btn" ${disabled?'disabled':''} onclick="captureGoal(${i})">${goalLabel}</button>
-      <div class="goal-queue">${queueHtml}</div>
+      <div class="goal-row-header">
+        <span class="goal-row-label">${i+1}本目</span>
+        <button class="goal-row-toggle ${rowCollapsed?'':'open'}" onclick="toggleGoalRowCollapse(${i})">▶</button>
+      </div>
+      <div class="goal-row-body ${rowCollapsed?'collapsed':''}">
+        <button class="big-goal-btn" ${disabled?'disabled':''} onclick="captureGoal(${i})">${goalLabel}</button>
+        <div class="goal-queue">${queueHtml}</div>
+      </div>
     </div>`;
   }
 
